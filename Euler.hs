@@ -32,6 +32,10 @@ isPalindrome :: (Show a) => a -> Bool
 isPalindrome s = s' == (reverse s')
     where s' = show s
 
+
+
+-- The actual functions for answering the problems
+
 eulerProblem :: Int -> String
 eulerProblem 1 = (show . sum . filter ismult) [1..999]
                  where ismult n = (divides 3 n) || (divides 5 n)
