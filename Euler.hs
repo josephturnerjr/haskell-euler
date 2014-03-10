@@ -23,29 +23,74 @@ rleCount = (map counts) . group
 
 factorCounts = rleCount . pFactors
 
+maxDivisor = floor . sqrt . fromInteger
+
 -- Jesus this is beautiful
 -- Blowing my mind, here, Haskell
 fibs :: [Integer]
 fibs = 0 : 1 : zipWith (+) fibs (tail fibs)
 
+primes :: [Integer]
+primes = 2 : filter noDivisors [3..]
+    where noDivisors n = (not . or . map (`divides` n)) (takeWhile (<= (maxDivisor n)) primes)
+
+triangles :: [Integer]
+triangles = map (\x -> x * (x + 1) `div` 2) [1..]
+
+nrDivisors :: Integer -> Int
+nrDivisors = (product . map countPlusOne . factorCounts)
+               where countPlusOne = (+1) . snd
+
+
 isPalindrome :: (Show a) => a -> Bool
 isPalindrome s = s' == (reverse s')
     where s' = show s
 
+groups :: Int -> [a] -> [[a]]
+groups size (x:xs)
+    | length xs >= size = take size xs : groups size xs
+    | otherwise = []
+groups _ _ = []
+
+-- Length of the Collatz sequence starting at n
+collatz :: Int -> Int
+collatz 0 = 0
+collatz 1 = 1
+collatz n
+    | odd n = 1 + collatzSeq !! (3 * n + 1)
+    | otherwise = 1 + collatzSeq !! (n `div` 2)
+collatzSeq = map collatz [0..]
 
 
 -- The actual functions for answering the problems
+-- -- 3/9/2014 - just learned about $
 
 eulerProblem :: Int -> String
-eulerProblem 1 = (show . sum . filter ismult) [1..999]
+eulerProblem 1 = show . sum . filter ismult $ [1..999]
                  where ismult n = (divides 3 n) || (divides 5 n)
-eulerProblem 2 = (show . sum . filter even . takeWhile (<4000000)) fibs
-eulerProblem 3 = (show . maximum . pFactors) 600851475143
-eulerProblem 4 = (show . maximum . filter isPalindrome . concat
-                        . map (\x -> map (*x) [100..x])) [100..999]
-eulerProblem 5 = (show . product . map largestMult . uniqueFactors . product) [1..n]
+eulerProblem 2 = show . sum . filter even . takeWhile (<4000000) $ fibs
+eulerProblem 3 = show . maximum . pFactors $ 600851475143
+eulerProblem 4 = show . maximum
+                      . filter isPalindrome
+                      . concat
+                      . map (\x -> map (*x) [100..x]) $ [100..999]
+eulerProblem 5 = show . product . map largestMult . uniqueFactors . product $ [1..n]
                  where n = 20
                        largestMult x = x ^ (floor (logBase (fromInteger x) (fromInteger n)))
-eulerProblem 6 = show (((^2) . sum) xs - (sum . map (^2)) xs)
+eulerProblem 6 = show $ ((^2) . sum) xs - (sum . map (^2)) xs
                  where xs = [1..100]
+eulerProblem 7 = show $ primes !! 10000 -- zero indexed!
+--eulerProblem 8 = show (eulerProblem' 8)
+eulerProblem 9 = show . product . head $ [[a,b,c]| c <- [5..998], a <- [3..c], b <- [3..a], a+b+c == 1000, a^2+b^2==c^2] 
+eulerProblem 10 = show . sum . takeWhile (< 2000000) $ primes
+eulerProblem 12 = show . head . dropWhile ((< 500) . snd) $ (zip triangles (map nrDivisors triangles))
+
 eulerProblem _ = "Not done yet!"
+
+-- I dont' yet know how to integrate this into the above.
+-- Trying to show the output of this is an error
+eulerProblem' 8 = do
+    -- don't fully understand file io
+    text <- readFile "problem-8.txt"
+    return $ (maximum . map prod . groups 5) ((head . lines) text)
+    where prod s = (product . map (\x -> read [x]::Int)) s
