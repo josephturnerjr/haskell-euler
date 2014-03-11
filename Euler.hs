@@ -65,32 +65,28 @@ collatzSeq = map collatz [0..]
 -- The actual functions for answering the problems
 -- -- 3/9/2014 - just learned about $
 
-eulerProblem :: Int -> String
-eulerProblem 1 = show . sum . filter ismult $ [1..999]
+type EulerInput  = String
+eulerProblem :: EulerInput -> Int -> String
+eulerProblem _ 1 = show . sum . filter ismult $ [1..999]
                  where ismult n = (divides 3 n) || (divides 5 n)
-eulerProblem 2 = show . sum . filter even . takeWhile (<4000000) $ fibs
-eulerProblem 3 = show . maximum . pFactors $ 600851475143
-eulerProblem 4 = show . maximum
+eulerProblem _ 2 = show . sum . filter even . takeWhile (<4000000) $ fibs
+eulerProblem _ 3 = show . maximum . pFactors $ 600851475143
+eulerProblem _ 4 = show . maximum
                       . filter isPalindrome
                       . concat
                       . map (\x -> map (*x) [100..x]) $ [100..999]
-eulerProblem 5 = show . product . map largestMult . uniqueFactors . product $ [1..n]
+eulerProblem _ 5 = show . product . map largestMult . uniqueFactors . product $ [1..n]
                  where n = 20
                        largestMult x = x ^ (floor (logBase (fromInteger x) (fromInteger n)))
-eulerProblem 6 = show $ ((^2) . sum) xs - (sum . map (^2)) xs
+eulerProblem _ 6 = show $ ((^2) . sum) xs - (sum . map (^2)) xs
                  where xs = [1..100]
-eulerProblem 7 = show $ primes !! 10000 -- zero indexed!
---eulerProblem 8 = show (eulerProblem' 8)
-eulerProblem 9 = show . product . head $ [[a,b,c]| c <- [5..998], a <- [3..c], b <- [3..a], a+b+c == 1000, a^2+b^2==c^2] 
-eulerProblem 10 = show . sum . takeWhile (< 2000000) $ primes
-eulerProblem 12 = show . head . dropWhile ((< 500) . snd) $ (zip triangles (map nrDivisors triangles))
+eulerProblem _ 7 = show $ primes !! 10000 -- zero indexed!
+eulerProblem text 8 = show . maximum . map prod . groups 5 $ ((head . lines) text)
+                      where prod s = (product . map (\x -> read [x]::Int)) s
+eulerProblem _ 9 = show . product . head $ [[a,b,c]| c <- [5..998], a <- [3..c], b <- [3..a], a+b+c == 1000, a^2+b^2==c^2] 
 
-eulerProblem _ = "Not done yet!"
+eulerProblem _ 10 = show . sum . takeWhile (< 2000000) $ primes
 
--- I dont' yet know how to integrate this into the above.
--- Trying to show the output of this is an error
-eulerProblem' 8 = do
-    -- don't fully understand file io
-    text <- readFile "problem-8.txt"
-    return $ (maximum . map prod . groups 5) ((head . lines) text)
-    where prod s = (product . map (\x -> read [x]::Int)) s
+eulerProblem _ 12 = show . head . dropWhile ((< 500) . snd) $ (zip triangles (map nrDivisors triangles))
+-- degenerate case
+eulerProblem _ _ = "Not done yet!"
