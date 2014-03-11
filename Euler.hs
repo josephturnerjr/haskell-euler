@@ -57,13 +57,30 @@ collatz :: Int -> Int
 collatz 0 = 0
 collatz 1 = 1
 collatz n
-    | odd n = 1 + collatzSeq !! (3 * n + 1)
-    | otherwise = 1 + collatzSeq !! (n `div` 2)
-collatzSeq = map collatz [0..]
+    | odd n = 1 + collatz (3 * n + 1)
+    | otherwise = 1 + collatz (n `div` 2)
 
+factorial 1 = 1
+factorial n = n * factorial (n - 1)
 
+charToDigit :: Char -> Int
+charToDigit c = read [c]::Int
+
+strToDigitList :: String -> [Int]
+strToDigitList = map charToDigit
+
+digitSum :: (Show a) => a -> Int
+digitSum = sum . strToDigitList . show
+
+digitProd :: (Show a) => a -> Int
+digitProd = product . strToDigitList . show
+
+listToInts :: [String] -> [Int]
+listToInts = map read
 -- The actual functions for answering the problems
 -- -- 3/9/2014 - just learned about $
+-- -- 3/10/2014 - move IO out of this function
+
 
 type EulerInput  = String
 eulerProblem :: EulerInput -> Int -> String
@@ -81,12 +98,14 @@ eulerProblem _ 5 = show . product . map largestMult . uniqueFactors . product $ 
 eulerProblem _ 6 = show $ ((^2) . sum) xs - (sum . map (^2)) xs
                  where xs = [1..100]
 eulerProblem _ 7 = show $ primes !! 10000 -- zero indexed!
-eulerProblem text 8 = show . maximum . map prod . groups 5 $ ((head . lines) text)
-                      where prod s = (product . map (\x -> read [x]::Int)) s
+eulerProblem text 8 = show . maximum . map digitProd . listToInts . groups 5 $ ((head . lines) text)
 eulerProblem _ 9 = show . product . head $ [[a,b,c]| c <- [5..998], a <- [3..c], b <- [3..a], a+b+c == 1000, a^2+b^2==c^2] 
 
 eulerProblem _ 10 = show . sum . takeWhile (< 2000000) $ primes
 
 eulerProblem _ 12 = show . head . dropWhile ((< 500) . snd) $ (zip triangles (map nrDivisors triangles))
+eulerProblem _ 14 = show . snd . maximum $ zip (map collatz [1,3..999999]) [1,3..999999]
+eulerProblem _ 15 = show ((factorial 40) `div` (factorial 20) ^ 2)
+eulerProblem _ 16 = show . digitSum $ 2 ^ 1000
 -- degenerate case
 eulerProblem _ _ = "Not done yet!"
