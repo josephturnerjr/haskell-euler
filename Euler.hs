@@ -3,7 +3,7 @@ module Euler
         eulerProblem
     ) where
 
-import Data.List (nub, group)
+import Data.List (nub, group, transpose)
 
 divides :: Integer -> Integer -> Bool
 divides a b = (b `mod` a) == 0
@@ -47,8 +47,8 @@ isPalindrome s = s' == (reverse s')
     where s' = show s
 
 groups :: Int -> [a] -> [[a]]
-groups size (x:xs)
-    | length xs >= size = take size xs : groups size xs
+groups size all@(x:xs)
+    | length all >= size = take size all : groups size xs
     | otherwise = []
 groups _ _ = []
 
@@ -77,12 +77,27 @@ digitProd = product . strToDigitList . show
 
 listToInts :: [String] -> [Int]
 listToInts = map read
+
+numAsWord :: Int -> String
+numAsWord 1000 = "onethousand"
+numAsWord 0 = ""
+numAsWord n 
+    | n < 20 = ["one", "two", "three", "four", "five", "six", "seven", "eight",
+              "nine", "ten", "eleven", "twelve", "thirteen", "fourteen",
+              "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"] !! (n - 1)
+    | n >= 20 && n < 100 = ["twenty", "thirty", "forty", "fifty", "sixty",
+                            "seventy", "eighty", "ninety"] !! (n `div` 10 - 2) ++ numAsWord (n `mod` 10)
+    | otherwise = numAsWord (n `div` 100) ++ "hundred" ++
+                    if (n `mod` 100) > 0 then
+                        "and" ++ numAsWord (n `mod` 100) else
+                        ""
 -- The actual functions for answering the problems
 -- -- 3/9/2014 - just learned about $
 -- -- 3/10/2014 - move IO out of this function
 
 
-type EulerInput  = String
+type EulerInput = String
+
 eulerProblem :: EulerInput -> Int -> String
 eulerProblem _ 1 = show . sum . filter ismult $ [1..999]
                  where ismult n = (divides 3 n) || (divides 5 n)
@@ -100,12 +115,24 @@ eulerProblem _ 6 = show $ ((^2) . sum) xs - (sum . map (^2)) xs
 eulerProblem _ 7 = show $ primes !! 10000 -- zero indexed!
 eulerProblem text 8 = show . maximum . map digitProd . listToInts . groups 5 $ ((head . lines) text)
 eulerProblem _ 9 = show . product . head $ [[a,b,c]| c <- [5..998], a <- [3..c], b <- [3..a], a+b+c == 1000, a^2+b^2==c^2] 
-
 eulerProblem _ 10 = show . sum . takeWhile (< 2000000) $ primes
-
+eulerProblem text 11 = show . allMax . allVecs . parseInput $ text
+                       where parseInput :: String -> [[Int]]
+                             parseInput = map (map read) . map words . lines
+                             maxVec = maximum . map product . groups 4
+                             maxHoriz = map maxVec
+                             uppers a = map (\x -> zipWith (!!) a [x..length a -1]) [0..length a - 1]
+                             lowers = uppers . transpose
+                             rDiags a = uppers a ++ tail (lowers a)
+                             lDiags = rDiags . map reverse 
+                             allVecs a = filter (\x -> length x >= 4) $ a ++ transpose a ++ rDiags a ++ lDiags a
+                             allMax = maximum . maxHoriz
 eulerProblem _ 12 = show . head . dropWhile ((< 500) . snd) $ (zip triangles (map nrDivisors triangles))
+eulerProblem text 13 = take 10 . show . sum $ ((map read . lines $ text)::[Integer])
 eulerProblem _ 14 = show . snd . maximum $ zip (map collatz [1,3..999999]) [1,3..999999]
 eulerProblem _ 15 = show ((factorial 40) `div` (factorial 20) ^ 2)
 eulerProblem _ 16 = show . digitSum $ 2 ^ 1000
+eulerProblem _ 17 = show . sum . map (length . numAsWord) $ [1..1000]
+eulerProblem _ 20 = show . digitSum $ factorial 100
 -- degenerate case
 eulerProblem _ _ = "Not done yet!"
