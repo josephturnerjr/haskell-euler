@@ -66,6 +66,7 @@ eulerProblem text 22 = show $ sum . map nameScore $ zip (sort parsed) [1..length
                              nameValue = sum . map charValue
                              charValue c = 1 + ord c - ord 'A'
                              nameScore (name, position) = position * nameValue name
+eulerProblem _ 24 = show . concat . map show $ perms [] [0..9] 999999
 eulerProblem text 25 = show $ length . takeWhile (\x -> nrDigits x < 1000) $ fibs
                        where nrDigits = length . show
 eulerProblem text 67 = eulerProblem text 18
@@ -75,6 +76,20 @@ eulerProblem _ _ = "Not done yet!"
 
 
 -- Helper functions
+--
+isAbundant :: (Integral a) => a -> Bool
+isAbundant n = (sum . init . pDivisors $ n) > n
+
+removeEl :: Int -> [a] -> [a]
+removeEl _ [] = []
+removeEl n xs = front ++ (tail rear)
+                where (front, rear) = splitAt n xs
+
+perms accum avail 0 = reverse accum ++ avail
+perms accum avail n =
+    perms ((avail !! idx):accum) (removeEl idx avail) (n - (idx * fac))
+    where idx = n `div` fac
+          fac = factorial (length avail - 1)
 
 divides :: (Integral a) => a -> a -> Bool
 divides a b = (b `mod` a) == 0
@@ -86,7 +101,7 @@ pFactors n = divisor : pFactors (n `div` divisor)
              where divisor = head (dropWhile (not . (`divides` n)) [2..n])
 
 pDivisors :: (Integral a) => a -> [a]
-pDivisors n = lows ++ (reverse . map (n `div`) $ lows)
+pDivisors n = nub $ lows ++ (reverse . map (n `div`) $ lows)
               where lows = filter (`divides` n) [1..(floor . sqrt $ fromIntegral n)]
 
 uniqueFactors :: Integer -> [Integer]
